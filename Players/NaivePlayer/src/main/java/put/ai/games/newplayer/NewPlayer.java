@@ -26,17 +26,6 @@ public class NewPlayer extends Player {
     }
     
     
-    public ArrayList<Board> getSuccessors(Board b)
-	{
-    	ArrayList<Board> successors = new ArrayList<>();
-    	Board tempBoard = b.clone();
-    	for(Move m: tempBoard.getMovesFor(getColor())) {
-			tempBoard.doMove(m);
-			successors.add(tempBoard);
-			tempBoard.undoMove(m);
-    	}
-    	return successors;
-	}
     
     public int getUtility(Board b)
 	{
@@ -103,7 +92,6 @@ public class NewPlayer extends Player {
 	{
 		int bestVal = 0;
 		Move move = null;
-		TheBestMoveEver = null;
 		Board tempBoard = currentBoard.clone();
 		
 		if(depth == 0)
@@ -117,13 +105,14 @@ public class NewPlayer extends Player {
 		{
 			
 			bestVal = Integer.MIN_VALUE;
-			ArrayList <Board> successors = getSuccessors(currentBoard);
-			for(int i = 0; i < successors.size(); i++) {
-				int thisVal = bestMove(depth - 1, successors.get(i), false);
+			for (Move m: tempBoard.getMovesFor(getColor())) {
+				tempBoard.doMove(m);
+				int thisVal = bestMove(depth - 1, tempBoard, false);
 				if(bestVal < thisVal) {
 					bestVal = thisVal;
 				}
-
+				tempBoard.undoMove(m);
+				move = m;
 			}
 			
 			System.out.println("depth: "+depth);
@@ -133,7 +122,6 @@ public class NewPlayer extends Player {
 			//if depth of one below parent is reached through recursion and the board has better utility than the previous best, make new board next move
 			if(bestVal > max && depth == this.depth - 1)
 			{
-				System.out.println("kupa2");
 				max = bestVal;
 				TheBestMoveEver = move;
 			}
@@ -142,11 +130,12 @@ public class NewPlayer extends Player {
 		else	//minimizing player
 		{
 			bestVal = Integer.MAX_VALUE;
-			ArrayList <Board> successors = getSuccessors(currentBoard);
-			for(int i = 0; i < successors.size(); i++) {
-				int thisVal = bestMove(depth - 1, successors.get(i), true);
+			for (Move m: tempBoard.getMovesFor(getColor())) {
+				tempBoard.doMove(m);
+				int thisVal = bestMove(depth - 1, tempBoard, true);
 				if(bestVal > thisVal) 
 					bestVal = thisVal;
+				tempBoard.undoMove(m);
 			}
 			return bestVal;
 		}
@@ -157,11 +146,10 @@ public class NewPlayer extends Player {
 
     @Override
     public Move nextMove(Board b) {
-    	
     	bestMove(this.depth, b, false);
     	if(TheBestMoveEver==null) {
     		List<Move> moves = b.getMovesFor(getColor());
-    		System.out.println("nie dzia≈Ça");
+    		System.out.println("nie dzia≥a");
     		return moves.get(random.nextInt(moves.size()));
     	}
         return TheBestMoveEver;
