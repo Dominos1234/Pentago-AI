@@ -1,157 +1,154 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package put.ai.games.newplayer;
 
-import java.util.ArrayList;
-import java.util.List;
-import put.ai.games.game.TypicalBoard;
-import java.util.Random;
+import java.util.*;
+
 import put.ai.games.game.Board;
 import put.ai.games.game.Move;
 import put.ai.games.game.Player;
 
 public class NewPlayer extends Player {
 
-    private Random random = new Random(0xdeadbeef);
-    private int max = 0;
+    private Integer max = 0;
     private Move TheBestMoveEver;
-	private int depth = 3;
-    
-    
+    private int depth = 2;
+    private long time;
+
     @Override
     public String getName() {
-        return "NewPlayer 686554";
+        return "";
+    }
+    
+    public int bestMove(int depth, Board parent_board, boolean maximizingPlayer)
+    {
+        int bestVal = 0;
+        Move move = null;
+        if(depth == 0) {
+            return getUtility(parent_board);
+        }
+
+        
+        Board tempBoard = parent_board.clone();
+        List<Move> moves = tempBoard.getMovesFor(getColor());
+        
+        for(Move m: moves){
+        	tempBoard.doMove(m);
+            if (tempBoard.getWinner(getColor()) == getColor()){
+            	TheBestMoveEver = m;
+                return Integer.MAX_VALUE;
+            }
+            tempBoard.undoMove(m);
+        }
+
+
+        if(maximizingPlayer){ // max
+            bestVal = Integer.MIN_VALUE;
+            for(Move m : moves) {
+            	tempBoard.doMove(m);
+                int thisVal = bestMove(depth - 1, tempBoard, false);
+                tempBoard.undoMove(m);
+                if(bestVal < thisVal) {
+                    bestVal = thisVal;
+                    move = m;
+                    }
+                }
+            }
+            if(bestVal > max && depth == this.depth - 1) {
+                max = bestVal;
+                TheBestMoveEver = move;
+            }
+
+        else{ // min
+            bestVal = Integer.MAX_VALUE;
+            for(Move m : moves){
+            	tempBoard.doMove(m);
+                int thisVal = bestMove(depth - 1, tempBoard , true);
+                tempBoard.undoMove(m);
+                if(bestVal > thisVal){
+                    bestVal = thisVal;
+                }
+            }
+        }
+
+        return bestVal;
+    }
+
+
+    public int getUtility(Board board) {
+        Integer size = board.getSize();
+        int utility = 0;
+        int streak = 0;
+
+        if (board.getWinner(this.getColor()) == this.getColor()){
+            return Integer.MAX_VALUE;
+        }
+
+
+        for(int i = 0; i < size; i++){
+            for(int j = 0; j < size-1; j++){
+                if(board.getState(i,j) == this.getColor() && board.getState(i,j+1) == this.getColor()){
+                    utility += streak + 1;
+                    streak++;
+                }
+                else streak = 0;
+            }
+        }
+        streak = 0;
+
+
+        for(int i = 0; i < size; i++){
+            for(int j = 0; j < size-1; j++){
+                if(board.getState(j, i) == this.getColor() && board.getState(j+1, i) == this.getColor()) {
+                    utility += streak + 1;
+                    streak++;
+                }
+                else streak = 0;
+            }
+        }
+        streak = 0;
+
+
+        for(int i = 0; i < size-1; i++) {
+            if(board.getState(i,i) == this.getColor() && board.getState(i+1, i+1) == this.getColor()) {
+                utility += streak + 1;
+                streak++;
+            }
+            else streak = 0;
+        }
+        streak = 0;
+
+        for(int i = 0; i < size-1; i++) {
+            if(board.getState(i, size-1-i) == this.getColor() && board.getState(i+1,size-2-i) == this.getColor()) {
+                utility += streak + 1;
+                streak++;
+            }
+            else
+                streak = 0;
+        }
+
+        return utility;
     }
     
     
-    
-    public int getUtility(Board b)
-	{
-		int utility = 0;
-		int streak = 0;			//streak is used to add additional points for more than 2 in a row
-								//2 in a row = 1 pt, 3 in a row = 2 pt, etc.
-		
-		//count horizontal doubles
-		for(int i = 0; i < 6; i++)	//go down row
-		{
-			for(int j = 0; j < 5; j++)	//count doubles
-			{
-				if(b.getState(i, j) == getColor() && b.getState(i, j+1) == getColor())
-					streak++;
-				else {
-					utility += streak*streak;
-					streak = 0;
-				}
-			}
-		}
-		
-		//count vertical doubles
-		for(int i = 0; i < 6; i++)	//go down columns
-		{
-			for(int j = 0; j < 5; j++)	//count doubles
-			{
-				if(b.getState(j, i) == getColor() && b.getState(j+1, i) == getColor())
-					streak++;
-				else {
-					utility += streak*streak;
-					streak = 0;
-				}
-			}
-		}
-		
-		//count main diagonal up-left to down-right
-		for(int i = 0; i < 5; i++)
-		{
-			if(b.getState(i,i) == getColor() && b.getState(i+1, i+1) == getColor())
-				streak++;
-			else {
-				utility += streak*streak;
-				streak = 0;
-			}
-		}
-		
-		//count main diagonal up-right to down-left
-		for(int i = 0; i < 5; i++)
-		{
-			if(b.getState(i,5-i) == getColor() && b.getState(i+1, 4-i) == getColor())
-				streak++;
-			else {
-				utility += streak*streak;
-				streak = 0;
-			}
-				
-		}
-		
-		return utility;
-	}
-
-    
-    public int bestMove(int depth, Board currentBoard, boolean maximizingPlayer)
-	{
-		int bestVal = 0;
-		Move move = null;
-		Board tempBoard = currentBoard.clone();
-		
-		if(depth == 0)
-		{
-			return getUtility(currentBoard);
-		}
-		
-		
-		
-		if(maximizingPlayer)
-		{
-			
-			bestVal = Integer.MIN_VALUE;
-			for (Move m: tempBoard.getMovesFor(getColor())) {
-				tempBoard.doMove(m);
-				int thisVal = bestMove(depth - 1, tempBoard, false);
-				if(bestVal < thisVal) {
-					bestVal = thisVal;
-				}
-				tempBoard.undoMove(m);
-				move = m;
-			}
-			
-			System.out.println("depth: "+depth);
-			System.out.println("this.depth: "+this.depth);
-			System.out.println(bestVal +" "+ max);
-			
-			//if depth of one below parent is reached through recursion and the board has better utility than the previous best, make new board next move
-			if(bestVal > max && depth == this.depth - 1)
-			{
-				max = bestVal;
-				TheBestMoveEver = move;
-			}
-			return bestVal;
-		}
-		else	//minimizing player
-		{
-			bestVal = Integer.MAX_VALUE;
-			for (Move m: tempBoard.getMovesFor(getColor())) {
-				tempBoard.doMove(m);
-				int thisVal = bestMove(depth - 1, tempBoard, true);
-				if(bestVal > thisVal) 
-					bestVal = thisVal;
-				tempBoard.undoMove(m);
-			}
-			return bestVal;
-		}
-	}
-    
     public static void main(String[] args) {}
-    
 
     @Override
     public Move nextMove(Board b) {
-    	bestMove(this.depth, b, false);
-    	if(TheBestMoveEver==null) {
-    		List<Move> moves = b.getMovesFor(getColor());
-    		System.out.println("nie dzia³a");
-    		return moves.get(random.nextInt(moves.size()));
-    	}
+        Board clone = b.clone();
+        time = System.currentTimeMillis();
+        if(b.getMovesFor(getColor()).size()<200)
+        	this.depth=3;
+        if(b.getMovesFor(getColor()).size()<140)
+        	this.depth=4;
+        if(b.getMovesFor(getColor()).size()==280) {
+        	TheBestMoveEver = b.getMovesFor(getColor()).get(58);
+        	return TheBestMoveEver;
+        }
+        TheBestMoveEver = null;
+        max = 0;
+        bestMove(this.depth, clone, false);
+        System.out.println(TheBestMoveEver);
+        clone.doMove(TheBestMoveEver);
+        //System.out.println(getUtility(clone));;
         return TheBestMoveEver;
     }
 }
