@@ -1,4 +1,4 @@
-package put.ai.games.newplayer;
+package put.ai.games.naiveplayer;
 
 import java.util.*;
 
@@ -6,12 +6,39 @@ import put.ai.games.game.Board;
 import put.ai.games.game.Move;
 import put.ai.games.game.Player;
 
-public class NewPlayer extends Player {
+
+public class NaivePlayer extends Player {
 
     private Integer max = 0;
     private Move TheBestMoveEver;
-    private int depth = 2;
-    private long time;
+    private int depth = 3;
+    private int bestVal = 0; // TODO 
+    
+    private volatile boolean timesUp;
+    
+    /**
+     * 
+     * Controls time to end of round
+     */
+    class TimeChecker implements Runnable {
+    	
+    	@Override
+    	public void run() {
+    		timesUp = false;
+    		long beginTime = System.currentTimeMillis(); // when round starts
+    		long timeToStop = getTime() - 100 + beginTime; //1 sec before end
+    		long currentTime = System.currentTimeMillis();
+    		while (currentTime < timeToStop) {
+    			currentTime = System.currentTimeMillis();
+    			try {
+					Thread.sleep(20);
+				} catch (InterruptedException e) {
+					System.out.println("Time thread interrupted!");
+				}
+    		}
+    		timesUp = true;
+    	}
+    }
 
     @Override
     public String getName() {
@@ -20,7 +47,8 @@ public class NewPlayer extends Player {
     
     public int bestMove(int depth, Board parent_board, boolean maximizingPlayer)
     {
-        int bestVal = 0;
+    	if (timesUp) return bestVal;
+        bestVal = 0;
         Move move = null;
         if(depth == 0) {
             return getUtility(parent_board);
@@ -134,7 +162,9 @@ public class NewPlayer extends Player {
     @Override
     public Move nextMove(Board b) {
         Board clone = b.clone();
-        time = System.currentTimeMillis();
+        TimeChecker timeCheck = new TimeChecker();
+        timeCheck.run();
+        
         if(b.getMovesFor(getColor()).size()<200)
         	this.depth=3;
         if(b.getMovesFor(getColor()).size()<140)

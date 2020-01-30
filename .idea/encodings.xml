@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/BoardGame" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/BoardGameEngine" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/CLI" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/GUI" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Players" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Players/NaivePlayer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Players/NastyPlayer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Players/NullPlayer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Rules" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Rules/Pentago" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/RulesProvider" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Tester" charset="UTF-8" />
+  </component>
+</project>
