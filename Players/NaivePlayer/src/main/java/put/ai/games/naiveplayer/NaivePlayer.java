@@ -11,8 +11,8 @@ public class NaivePlayer extends Player {
 
     private Integer max = 0;
     private Move TheBestMoveEver;
-    private int depth = 3;
-    private int bestVal = 0; // TODO 
+    private int depth = 2;
+//    private int bestVal = 0; // TODO 
     
     private volatile boolean timesUp;
     
@@ -22,33 +22,35 @@ public class NaivePlayer extends Player {
      */
     class TimeChecker implements Runnable {
     	
+    	
     	@Override
     	public void run() {
     		timesUp = false;
-    		long beginTime = System.currentTimeMillis(); // when round starts
-    		long timeToStop = getTime() - 100 + beginTime; //1 sec before end
-    		long currentTime = System.currentTimeMillis();
+    		long currentTime = System.currentTimeMillis(); // when round starts
+    		long timeToStop = getTime() - 1000 + currentTime; //1 sec before end
+    		System.out.println(currentTime);
+    		System.out.println(timeToStop);
     		while (currentTime < timeToStop) {
     			currentTime = System.currentTimeMillis();
     			try {
-					Thread.sleep(20);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					System.out.println("Time thread interrupted!");
 				}
     		}
+    		System.out.println("Times up!");
     		timesUp = true;
     	}
     }
 
     @Override
-    public String getName() {
-        return "";
-    }
+	public String getName() {
+		return "Tomasz Jurek 132244 Dominik Stachowiak ??????";
+	}
     
     public int bestMove(int depth, Board parent_board, boolean maximizingPlayer)
-    {
-    	if (timesUp) return bestVal;
-        bestVal = 0;
+    {   		
+        int bestVal = 0;
         Move move = null;
         if(depth == 0) {
             return getUtility(parent_board);
@@ -77,13 +79,14 @@ public class NaivePlayer extends Player {
                 if(bestVal < thisVal) {
                     bestVal = thisVal;
                     move = m;
+                	
                     }
                 }
             }
-            if(bestVal > max && depth == this.depth - 1) {
-                max = bestVal;
-                TheBestMoveEver = move;
-            }
+        if(bestVal > max && depth == this.depth - 1) {
+            max = bestVal;
+            TheBestMoveEver = move;
+        }
 
         else{ // min
             bestVal = Integer.MAX_VALUE;
@@ -93,6 +96,10 @@ public class NaivePlayer extends Player {
                 tempBoard.undoMove(m);
                 if(bestVal > thisVal){
                     bestVal = thisVal;
+                	if (timesUp) { // out 2.
+//                		System.out.println("bestVal = " + bestVal);
+                		return bestVal;
+                	}
                 }
             }
         }
@@ -158,13 +165,13 @@ public class NaivePlayer extends Player {
     
     
     public static void main(String[] args) {}
+    
+    private int countTo5 = 0;
 
     @Override
     public Move nextMove(Board b) {
         Board clone = b.clone();
-        TimeChecker timeCheck = new TimeChecker();
-        timeCheck.run();
-        
+      
         if(b.getMovesFor(getColor()).size()<200)
         	this.depth=3;
         if(b.getMovesFor(getColor()).size()<140)
@@ -175,6 +182,17 @@ public class NaivePlayer extends Player {
         }
         TheBestMoveEver = null;
         max = 0;
+        
+        if (countTo5 < 4) {
+	        TimeChecker timeCheck = new TimeChecker();
+	        timeCheck.run();
+        }
+      
+        if (countTo5 == 4) {
+        	timesUp = false;
+        }
+        countTo5++;
+              
         bestMove(this.depth, clone, false);
         System.out.println(TheBestMoveEver);
         clone.doMove(TheBestMoveEver);
